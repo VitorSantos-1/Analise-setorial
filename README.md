@@ -136,3 +136,63 @@ O relatório completo consolidado está disponível no arquivo PDF abaixo. Todos
 ## Autor
 
 Vitor Santos — Análise de Dados e Inteligência Comercial (Varejo).
+
+## 🗺️ Modelo de Dados (DER)
+
+Modelo dimensional (*snowflake*) que sustenta o painel, extraído do banco MySQL `analise_setorial`. A hierarquia mercadológica é normalizada em dimensões próprias e cada **comprador** responde por um conjunto de categorias. Renderizado pelo GitHub via Mermaid. *Dados fictícios de demonstração.*
+
+```mermaid
+erDiagram
+    dim_comprador ||--o{ dim_mercadologico : "responsável por"
+    dim_mercadologico ||--o{ dim_submercadologico : "desdobra em"
+    dim_mercadologico ||--o{ dim_produto : "classifica"
+    dim_submercadologico ||--o{ dim_produto : "subclassifica"
+    dim_produto ||--o{ fato_analise_setorial : "dimensiona"
+    dim_loja ||--o{ fato_analise_setorial : "dimensiona"
+
+    dim_comprador {
+        int pk_comprador PK
+        varchar descricao_comprador
+    }
+    dim_loja {
+        int pk_loja PK
+        varchar descricao_loja
+    }
+    dim_mercadologico {
+        int pk_mercadologico PK
+        varchar descricao_mercadologico
+        int fk_comprador FK
+    }
+    dim_submercadologico {
+        int pk_submercadologico PK
+        int fk_mercadologico FK "+ compõe a PK"
+        varchar descricao_submercadologico
+        varchar id_unico_submercadologico
+    }
+    dim_produto {
+        int pk_produto PK
+        varchar descricao_produto
+        varchar codigo_identificacao "ex: 001.013.003"
+        int fk_mercadologico FK
+        int fk_submercadologico FK
+        varchar id_unico_submercadologico
+    }
+    fato_analise_setorial {
+        int pk_fato_analise_setorial PK
+        int fk_produto FK
+        int fk_loja FK
+        int quantidade
+        decimal venda
+        decimal lucro
+        date data "grão mensal"
+    }
+```
+
+### 📐 Métricas e cálculos derivados (camada analítica / DAX)
+A fato guarda os fatos brutos (`quantidade`, `venda`, `lucro`); os indicadores abaixo são calculados sobre a hierarquia `comprador → mercadológico → submercadológico → produto`:
+
+- **Margem %** = `lucro / venda`
+- **Participação (share)** de cada setor/categoria no total (× período e × loja)
+- **Curva ABC** de produtos/categorias por faturamento
+- **Run Rate** e **crescimento YoY** (ano contra ano)
+- **Análise de desvios** (realizado × esperado) por setor e comprador
