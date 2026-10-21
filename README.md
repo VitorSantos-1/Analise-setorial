@@ -196,3 +196,8 @@ A fato guarda os fatos brutos (`quantidade`, `venda`, `lucro`); os indicadores a
 - **Curva ABC** de produtos/categorias por faturamento
 - **Run Rate** e **crescimento YoY** (ano contra ano)
 - **Análise de desvios** (realizado × esperado) por setor e comprador
+
+## ⚙️ ETL & Modelo físico
+Pipeline que alimenta o painel (consolidado neste repositório):
+- **`sql/schema.sql`** — DDL real do banco MySQL `analise_setorial` (exportado via `SHOW CREATE TABLE`).
+- **`etl/`** — scripts Python (Pandas + SQLAlchemy): cadastro da dimensão de produtos e carga da fato de vendas setoriais, com `data_exemplo/` fictício.
